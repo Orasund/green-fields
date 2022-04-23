@@ -3,7 +3,7 @@ module Data.DiceBag exposing (..)
 import Data.Dice as Dice exposing (Dice)
 import Random exposing (Generator)
 import StaticArray exposing (StaticArray)
-import StaticArray.Index exposing (Index, Six)
+import StaticArray.Index as Index exposing (Index, Six)
 import StaticArray.Length as Length
 
 
@@ -38,19 +38,24 @@ count dice =
 
 addAll : List Dice -> DiceBag -> DiceBag
 addAll list diceBag =
+    diceBag
+        |> addAllN
+            (list
+                |> List.map (\dice -> ( dice, 1 ))
+            )
+
+
+addAllN : List ( Dice, Int ) -> DiceBag -> DiceBag
+addAllN list diceBag =
     list
-        |> List.foldl add diceBag
+        |> List.foldl (\( i, n ) -> addN n i)
+            diceBag
 
 
 removeAll : List Dice -> DiceBag -> DiceBag
 removeAll list diceBag =
     list
         |> List.foldl remove diceBag
-
-
-add : Dice -> DiceBag -> DiceBag
-add =
-    addN 1
 
 
 addN : Int -> Dice -> DiceBag -> DiceBag
@@ -61,6 +66,12 @@ addN n i bag =
 remove : Dice -> DiceBag -> DiceBag
 remove i bag =
     bag |> StaticArray.set i (bag |> StaticArray.get i |> (+) -1 |> max 0)
+
+
+fromList : List ( Dice, Int ) -> DiceBag
+fromList list =
+    empty
+        |> addAllN list
 
 
 toList : DiceBag -> List ( Dice, Int )
@@ -83,3 +94,24 @@ toString diceBag =
                     |> String.concat
             )
         |> String.join " "
+
+
+streets : DiceBag -> List (List Dice)
+streets bag =
+    case toList bag of
+        [] ->
+            []
+
+        ( head, _ ) :: tail ->
+            tail
+                |> List.foldl
+                    (\( i, _ ) ( ( current, street ), list ) ->
+                        if Index.increase Dice.length current == Just i then
+                            ( ( i, current :: street ), list )
+
+                        else
+                            ( ( i, [] ), (current :: street) :: list )
+                    )
+                    ( ( head, [] ), [] )
+                |> (\( ( current, street ), list ) -> (current :: street) :: list)
+                |> List.filter (\street -> List.length street >= 3)

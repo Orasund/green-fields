@@ -45,6 +45,7 @@ toBrowserDocument model view =
         [ Html.node "link" [ Attr.rel "stylesheet", Attr.href "https://vanillacss.com/vanilla.css" ] []
         , Style.filledRow
             [ Style.link "Kitchen" Route.Kitchen
+            , Style.link "Lake" Route.Lake
             , Style.link "Woods" Route.Woods
             ]
         , Style.filledRow

@@ -10,6 +10,7 @@ import Page
 import Request
 import Shared
 import View exposing (View)
+import View.NoDice as NoDice
 import View.Style as Style
 
 
@@ -41,8 +42,7 @@ init =
 
 
 type Msg
-    = SelectDie Dice
-    | SelectN Int Dice
+    = SelectDice Int Dice
     | UnselectDie Dice
     | ChopWood
 
@@ -50,10 +50,7 @@ type Msg
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        SelectDie die ->
-            ( { model | selectedDice = model.selectedDice |> DiceBag.add die }, Effect.none )
-
-        SelectN n die ->
+        SelectDice n die ->
             ( { model
                 | selectedDice =
                     model.selectedDice
@@ -95,68 +92,72 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Woods"
     , body =
-        [ "You can use leftover die to choop some wood." |> Style.paragraph
-        , Style.section "Choop Wood"
-            [ "Select the dice you want to use for chopping."
-                |> Style.paragraph
-            , shared.dice
-                |> DiceBag.toList
-                |> List.map
-                    (\( die, n ) ->
-                        let
-                            selected =
-                                model.selectedDice |> DiceBag.count die
-                        in
-                        [ List.repeat (n - selected) (die |> Dice.toString)
-                            |> String.concat
-                            |> Html.text
-                            |> List.singleton
-                            |> Html.div []
-                        , [ List.repeat selected (die |> Dice.toString)
+        if DiceBag.isEmpty shared.dice then
+            [ NoDice.view ]
+
+        else
+            [ "You can use leftover die to choop some wood." |> Style.paragraph
+            , Style.section "Choop Wood"
+                [ "Select the dice you want to use for chopping."
+                    |> Style.paragraph
+                , shared.dice
+                    |> DiceBag.toList
+                    |> List.map
+                        (\( die, n ) ->
+                            let
+                                selected =
+                                    model.selectedDice |> DiceBag.count die
+                            in
+                            [ List.repeat (n - selected) (die |> Dice.toString)
                                 |> String.concat
                                 |> Html.text
                                 |> List.singleton
                                 |> Html.div []
-                          , [ Style.button "-"
-                                (if selected > 0 then
-                                    Just (UnselectDie die)
+                            , [ List.repeat selected (die |> Dice.toString)
+                                    |> String.concat
+                                    |> Html.text
+                                    |> List.singleton
+                                    |> Html.div []
+                              , [ Style.button "-"
+                                    (if selected > 0 then
+                                        Just (UnselectDie die)
 
-                                 else
-                                    Nothing
-                                )
-                            , Html.text " "
-                            , selected |> String.fromInt |> Html.text
-                            , Html.text " "
-                            , Style.button "+"
-                                (if selected < n then
-                                    Just (SelectDie die)
+                                     else
+                                        Nothing
+                                    )
+                                , Html.text " "
+                                , selected |> String.fromInt |> Html.text
+                                , Html.text " "
+                                , Style.button "+"
+                                    (if selected < n then
+                                        Just (SelectDice 1 die)
 
-                                 else
-                                    Nothing
-                                )
-                            , Html.text " "
-                            , Style.button "++"
-                                (if n > 1 && selected < n then
-                                    Just (SelectN (n - selected) die)
+                                     else
+                                        Nothing
+                                    )
+                                , Html.text " "
+                                , Style.button "++"
+                                    (if selected < n then
+                                        Just (SelectDice (n - selected) die)
 
-                                 else
-                                    Nothing
-                                )
+                                     else
+                                        Nothing
+                                    )
+                                ]
+                                    |> Html.div []
+                              ]
+                                |> Style.filledRow
                             ]
-                                |> Html.div []
-                          ]
-                            |> Style.filledRow
-                        ]
-                    )
-                |> Style.table [ "Remaining", "Selected" ]
-            , Style.paragraph ""
-            , Style.button "Chop Wood"
-                (if DiceBag.isEmpty model.selectedDice then
-                    Nothing
+                        )
+                    |> Style.table [ "Remaining", "Selected" ]
+                , Style.paragraph ""
+                , Style.button "Chop Wood"
+                    (if DiceBag.isEmpty model.selectedDice then
+                        Nothing
 
-                 else
-                    Just ChopWood
-                )
+                     else
+                        Just ChopWood
+                    )
+                ]
             ]
-        ]
     }
