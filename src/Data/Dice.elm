@@ -17,13 +17,13 @@ length =
 
 random : Generator Dice
 random =
-    Random.int 0 5 |> Random.map (Index.fromLessThen length)
+    Random.int 0 5
+        |> Random.map (Index.fromLessThen length)
 
 
 internalAsString : StaticArray Six String
 internalAsString =
-    [ "⚀", "⚁", "⚂", "⚃", "⚄", "⚅" ]
-        |> StaticArray.fromList length ""
+    StaticArray.fromList length "⚀" [ "⚁", "⚂", "⚃", "⚄", "⚅" ]
 
 
 toString : Dice -> String

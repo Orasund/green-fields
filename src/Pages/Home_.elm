@@ -11,17 +11,15 @@ import View.Style as Style
 
 view : View msg
 view =
-    { title = Config.title
+    { title = "Welcome to " ++ Config.title
     , body =
-        [ Style.section ("Welcome to " ++ Config.title)
-            [ Style.paragraph "Hello there, stranger :)"
-            , "This is a digital Roll & Write game. "
-                ++ "This means you throw dice and then use them for various actions. "
-                ++ "The theme of this game is farming, mining and crafting. "
-                ++ "If this is up your allay, "
-                ++ "click on the link below to head over to the kitchen and start throwing dice."
-                |> Style.paragraph
-            , Style.link "To the Kitchen" Route.Kitchen
-            ]
+        [ Style.paragraph "Hello there, stranger :)"
+        , "This is a digital Roll & Write game. "
+            ++ "This means you throw dice and then use them for various actions. "
+            ++ "The theme of this game is farming, mining and crafting. "
+            ++ "If this is up your allay, "
+            ++ "click on the link below to head over to the kitchen and start throwing dice."
+            |> Style.paragraph
+        , Style.link "To the Kitchen" Route.Kitchen
         ]
     }

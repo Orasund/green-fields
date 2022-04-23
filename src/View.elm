@@ -1,6 +1,7 @@
 module View exposing (View, map, none, placeholder, toBrowserDocument)
 
 import Browser
+import Config
 import Css
 import Data.Dice as Dice
 import Data.DiceBag as DiceBag
@@ -39,19 +40,22 @@ map fn view =
 
 toBrowserDocument : Model -> View msg -> Browser.Document msg
 toBrowserDocument model view =
-    { title = view.title
+    { title = Config.title
     , body =
-        ([ Html.node "link" [ Attr.rel "stylesheet", Attr.href "https://vanillacss.com/vanilla.css" ] []
-         , Style.filledRow
-            [ Html.div [] [ Style.link "Kitchen" Route.Kitchen, Style.link "Woods" Route.Woods ]
+        [ Html.node "link" [ Attr.rel "stylesheet", Attr.href "https://vanillacss.com/vanilla.css" ] []
+        , Style.filledRow
+            [ Style.link "Kitchen" Route.Kitchen
+            , Style.link "Woods" Route.Woods
             ]
-         , Style.filledRow
+        , Style.filledRow
             [ model.dice
                 |> DiceBag.toString
                 |> Html.text
+                |> List.singleton
+                |> Html.div []
+            , (model.money |> String.fromInt) ++ "G" |> Html.text |> List.singleton |> Html.div []
             ]
-         ]
-            ++ view.body
-        )
+        , Style.article view.title view.body
+        ]
             |> List.map Html.toUnstyled
     }

@@ -60,18 +60,13 @@ update msg model =
 
 view : Shared.Model -> Model -> View Msg
 view shared model =
-    let
-        diceBag =
-            shared.dice
-                |> DiceBag.toList
-    in
-    { title = Config.title
+    { title = "Kitchen"
     , body =
-        [ Style.section "Kitchen"
-            (if List.isEmpty diceBag then
+        [ Style.section "Your Dice"
+            (if DiceBag.isEmpty shared.dice then
                 [ "You don't have any dice."
                     |> Style.paragraph
-                , Style.button "Throw Dice" Rethrow
+                , Style.button "Throw Dice" (Just Rethrow)
                 ]
 
              else

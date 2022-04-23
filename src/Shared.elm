@@ -20,6 +20,7 @@ type alias Flags =
 
 type alias Model =
     { dice : DiceBag
+    , money : Int
     , seed : Seed
     }
 
@@ -27,12 +28,14 @@ type alias Model =
 type Msg
     = NoOp
     | UpdateModel (Model -> Model)
+    | AddMoney Int
+    | RemoveDice DiceBag
     | Rethrow
 
 
 init : Request -> Flags -> ( Model, Cmd Msg )
 init _ _ =
-    ( { dice = Dicebag.empty, seed = Random.initialSeed 42 }
+    ( { dice = Dicebag.empty, money = 0, seed = Random.initialSeed 42 }
     , Random.independentSeed |> Random.generate (\seed -> UpdateModel (\m -> { m | seed = seed }))
     )
 
@@ -63,6 +66,22 @@ update _ msg model =
                         { model | dice = Dicebag.empty |> Dicebag.addAll list }
                     )
                 |> applyGenerator model.seed
+            , Cmd.none
+            )
+
+        AddMoney money ->
+            ( { model | money = model.money + money }, Cmd.none )
+
+        RemoveDice selectedDice ->
+            ( { model
+                | dice =
+                    model.dice
+                        |> Dicebag.removeAll
+                            (selectedDice
+                                |> Dicebag.toList
+                                |> List.concatMap (\( i, n ) -> List.repeat n i)
+                            )
+              }
             , Cmd.none
             )
 
