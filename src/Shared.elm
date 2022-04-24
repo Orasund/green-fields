@@ -107,7 +107,11 @@ update request msg model =
 
         AddRandomDice amount ->
             model.seed
-                |> Random.step (Dice.random |> Random.map (\dice -> Dicebag.fromList [ ( dice, 1 ) ]))
+                |> Random.step
+                    (Dice.random
+                        |> Random.list amount
+                        |> Random.map (\list -> Dicebag.empty |> Dicebag.addAll list)
+                    )
                 |> (\( dice, seed ) -> { model | seed = seed } |> update request (AddDice dice))
 
         AddDice selectedDice ->

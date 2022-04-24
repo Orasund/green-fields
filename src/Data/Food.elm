@@ -1,5 +1,6 @@
 module Data.Food exposing (..)
 
+import Config
 import Data.Die as Die exposing (Die)
 import Data.Food.Fish as Fish exposing (Fish)
 import Data.Food.Vegetable as Vegetable exposing (Vegetable)
@@ -37,7 +38,7 @@ price food =
             Fish.price fish
 
         VegetableFood vegetable ->
-            5
+            Config.priceOfVegetables
 
 
 description : Food -> String

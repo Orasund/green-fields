@@ -1,5 +1,7 @@
 module Data.Food.Fish exposing (..)
 
+import Config
+
 
 type Fish
     = Fish
@@ -42,15 +44,7 @@ toString fish =
 
 price : Fish -> Int
 price fish =
-    case fish of
-        Fish ->
-            10
-
-        Octopus ->
-            20
-
-        Lobster ->
-            40
+    2 ^ (toAmount fish - 1) * Config.fishBasePrice
 
 
 fromStreet : Int -> Maybe Fish

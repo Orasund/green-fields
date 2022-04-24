@@ -127,55 +127,46 @@ viewItems list =
 
 viewDie : Shared.Model -> ( Die, Int ) -> Html Msg
 viewDie shared ( die, amount ) =
-    [ die
-        |> Dice.toString
-        |> List.repeat amount
-        |> String.concat
-        |> Html.text
-        |> List.singleton
-        |> Html.div [ Attr.css [ Css.textAlign Css.center, Css.fontSize Css.xLarge ] ]
-    , ((Vegetable.asList
-            |> List.filterMap
-                (\vegetable ->
-                    let
-                        modifier =
-                            vegetable
-                                |> Vegetable.modifier
-                    in
-                    if shared.items |> AnyBag.member (VegetableFood vegetable) then
-                        die
-                            |> Dice.add modifier
-                            |> Maybe.map
-                                (\_ ->
-                                    Style.button
-                                        (modifier
-                                            |> (\int ->
-                                                    if int > 0 then
-                                                        "+" ++ String.fromInt int
-
-                                                    else
-                                                        String.fromInt int
-                                               )
-                                        )
-                                        (Just (ApplyVegetable die vegetable))
-                                )
-
-                    else
-                        Nothing
-                )
-       )
-        |> (\list ->
-                if List.isEmpty list then
-                    []
+    (Vegetable.asList
+        |> List.filterMap
+            (\vegetable ->
+                let
+                    modifier =
+                        vegetable
+                            |> Vegetable.modifier
+                in
+                if shared.items |> AnyBag.member (VegetableFood vegetable) then
+                    die
+                        |> Dice.add modifier
+                        |> Maybe.map
+                            (\newDie ->
+                                [ Style.button ("Change into " ++ Dice.toString newDie)
+                                    (Just (ApplyVegetable die vegetable))
+                                , " using one " ++ Vegetable.toString vegetable |> Html.text
+                                ]
+                                    |> Html.div []
+                            )
 
                 else
-                    ("Modify:" |> Style.bold) :: list
+                    Nothing
+            )
+    )
+        |> (\list ->
+                if List.isEmpty list then
+                    Style.none
+
+                else
+                    ("Modify "
+                        ++ (die
+                                |> Dice.toString
+                                |> List.repeat amount
+                                |> String.concat
+                           )
+                        |> Style.bold
+                    )
+                        :: list
+                        |> Style.column
            )
-        |> List.intersperse (Html.text " ")
-      )
-        |> Style.row
-    ]
-        |> Html.div []
 
 
 view : Shared.Model -> Model -> View Msg

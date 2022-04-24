@@ -63,6 +63,8 @@ update msg model =
             , [ -price
                     |> Shared.AddMoney
                     |> Effect.fromShared
+              , Shared.AddField
+                    |> Effect.fromShared
               ]
                 |> Effect.batch
             )
@@ -190,7 +192,7 @@ view shared model =
         else
             let
                 price =
-                    Config.fieldBasePrice
+                    Config.fieldBasePrice * Array.length shared.fields
             in
             [ [ Style.button "Buy another Field"
                     (if shared.money >= price then

@@ -16,9 +16,19 @@ fieldBasePrice =
     100
 
 
+fishBasePrice : Int
+fishBasePrice =
+    20
+
+
+priceOfVegetables : Int
+priceOfVegetables =
+    3
+
+
 priceOfWood : Int
 priceOfWood =
-    2
+    1
 
 
 priceOfStone : Int
