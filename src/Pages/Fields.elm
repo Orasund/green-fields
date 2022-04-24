@@ -130,28 +130,30 @@ viewField shared ( i, maybeVege ) =
                     vege |> Vegetable.toDie
             in
             Style.section (name ++ " Field")
-                [ "Use a "
-                    ++ (die |> Dice.toString)
-                    ++ " to get a "
-                    ++ name
-                    |> Style.paragraph
-                , [ Style.button "Harvest"
+                [ [ [ Style.button ("Harvest 1 " ++ name)
                         (if shared.dice |> DiceBag.member die then
                             Just (Harvest vege)
 
                          else
                             Nothing
                         )
-                  , Html.text " "
-                  , Just (Remove i)
+                    , " for " ++ (die |> Dice.toString) |> Html.text
+                    ]
+                        |> Style.row
+                  , [ "You can also " |> Html.text
+                    , Just (Remove i)
                         |> Style.button "Remove"
+                    , " it for free to get back an empty field." |> Html.text
+                    ]
+                        |> Style.row
                   ]
+                    |> List.intersperse (Html.text " ")
                     |> Style.row
                 ]
 
         Nothing ->
             Style.section "Empty Field"
-                [ Style.paragraph "Use a single die to plant some vegetables"
+                [ Style.paragraph "Choose the vegetable you want to plant here"
                 , Vegetable.asList
                     |> List.filterMap
                         (\vege ->
@@ -163,16 +165,18 @@ viewField shared ( i, maybeVege ) =
                                     vege |> Vegetable.toDie
                             in
                             if shared.dice |> DiceBag.member die then
-                                Just
-                                    [ name ++ " Farm" |> Html.text
-                                    , die |> Dice.toString |> Html.text
-                                    , Style.button "Build" (Just (Plant i vege))
-                                    ]
+                                [ name ++ " Farm" |> Style.bold
+                                , "Harvest 1 " ++ name ++ " for " ++ (die |> Dice.toString) |> Html.text
+                                , Style.button ("Build for " ++ (die |> Dice.toString))
+                                    (Just (Plant i vege))
+                                ]
+                                    |> Style.column
+                                    |> Just
 
                             else
                                 Nothing
                         )
-                    |> Style.table [ "Build", "Cost", "Action" ]
+                    |> Style.list
                 ]
 
 
@@ -188,13 +192,20 @@ view shared model =
                 price =
                     Config.fieldBasePrice
             in
-            [ Style.button ("Buy another Field for " ++ String.fromInt price ++ Config.moneySymbol ++ ".")
-                (if shared.money >= price then
-                    BuyField { price = price } |> Just
+            [ [ Style.button "Buy another Field"
+                    (if shared.money >= price then
+                        BuyField { price = price } |> Just
 
-                 else
-                    Nothing
-                )
+                     else
+                        Nothing
+                    )
+              , " for "
+                    ++ String.fromInt price
+                    ++ Config.moneySymbol
+                    ++ "."
+                    |> Html.text
+              ]
+                |> Style.row
             , shared.fields
                 |> Array.toIndexedList
                 |> List.map (viewField shared)

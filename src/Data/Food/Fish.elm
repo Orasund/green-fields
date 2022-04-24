@@ -2,52 +2,67 @@ module Data.Food.Fish exposing (..)
 
 
 type Fish
-    = Bass
-    | Trout
-    | Salmon
+    = Fish
+    | Octopus
+    | Lobster
 
 
 asList : List Fish
 asList =
-    [ Bass, Trout, Salmon ]
+    [ Fish, Octopus, Lobster ]
+
+
+emoji : Fish -> String
+emoji fish =
+    case fish of
+        Fish ->
+            "🐟"
+
+        Octopus ->
+            "🐙"
+
+        Lobster ->
+            "🦞"
 
 
 toString : Fish -> String
 toString fish =
-    case fish of
-        Bass ->
-            "Bass"
+    emoji fish
+        ++ (case fish of
+                Fish ->
+                    "Fish"
 
-        Trout ->
-            "Trout"
+                Octopus ->
+                    "Octopus"
 
-        Salmon ->
-            "Salmon"
+                Lobster ->
+                    "Lobster"
+           )
 
 
 price : Fish -> Int
 price fish =
     case fish of
-        Bass ->
+        Fish ->
             10
 
-        Trout ->
+        Octopus ->
             20
 
-        Salmon ->
+        Lobster ->
             40
 
 
 fromStreet : Int -> Maybe Fish
 fromStreet streetLength =
     if streetLength == 3 then
-        Just Bass
+        Just Fish
 
     else if streetLength == 4 then
-        Just Trout
+        Just Octopus
 
     else if streetLength == 5 then
-        Just Salmon
+        Just Lobster
 
     else
         Nothing
@@ -56,11 +71,11 @@ fromStreet streetLength =
 toAmount : Fish -> Int
 toAmount fish =
     case fish of
-        Bass ->
+        Fish ->
             1
 
-        Trout ->
+        Octopus ->
             2
 
-        Salmon ->
+        Lobster ->
             3

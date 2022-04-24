@@ -20,6 +20,16 @@ toString food =
             vegetable |> Vegetable.toString
 
 
+emoji : Food -> String
+emoji food =
+    case food of
+        FishFood fish ->
+            fish |> Fish.emoji
+
+        VegetableFood vegetable ->
+            vegetable |> Vegetable.emoji
+
+
 price : Food -> Int
 price food =
     case food of

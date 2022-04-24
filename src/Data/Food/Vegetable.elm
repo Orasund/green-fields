@@ -6,37 +6,61 @@ import Data.Die as Die exposing (Die)
 type Vegetable
     = Potato
     | Carrot
-    | Salat
-    | Union
+    | Tomato
+    | Onion
     | Cucumber
-    | Cauliflower
+    | Broccoli
 
 
 toString : Vegetable -> String
 toString vegetable =
+    emoji vegetable
+        ++ (case vegetable of
+                Potato ->
+                    "Potato"
+
+                Carrot ->
+                    "Carrot"
+
+                Tomato ->
+                    "Tomato"
+
+                Onion ->
+                    "Onion"
+
+                Cucumber ->
+                    "Cucumber"
+
+                Broccoli ->
+                    "Cauliflower"
+           )
+
+
+emoji : Vegetable -> String
+emoji vegetable =
     case vegetable of
         Potato ->
-            "Potato"
+            "🥔"
 
         Carrot ->
-            "Carrot"
+            "🥕"
 
-        Salat ->
-            "Salat"
+        Tomato ->
+            "🍅"
 
-        Union ->
-            "Union"
+        Onion ->
+            "🧅"
 
         Cucumber ->
-            "Cucumber"
+            "🥒"
 
-        Cauliflower ->
-            "Cauliflower"
+        Broccoli ->
+            "🥦"
 
 
 asList : List Vegetable
 asList =
-    [ Potato, Carrot, Salat, Union, Cucumber, Cauliflower ]
+    [ Potato, Carrot, Tomato, Onion, Cucumber, Broccoli ]
 
 
 toDie : Vegetable -> Die
@@ -48,16 +72,16 @@ toDie vegetable =
         Carrot ->
             1
 
-        Salat ->
+        Tomato ->
             2
 
-        Union ->
+        Onion ->
             3
 
         Cucumber ->
             4
 
-        Cauliflower ->
+        Broccoli ->
             5
     )
         |> Die.fromInt
@@ -72,14 +96,14 @@ modifier vegetable =
         Carrot ->
             -2
 
-        Salat ->
+        Tomato ->
             -1
 
-        Union ->
+        Onion ->
             1
 
         Cucumber ->
             2
 
-        Cauliflower ->
+        Broccoli ->
             3

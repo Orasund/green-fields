@@ -1,11 +1,17 @@
 module View.Style exposing (..)
 
 import Css
+import Data.Route as Route
 import Gen.Route exposing (Route)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
 import Html.Styled.Events as Events
 import Shared exposing (Msg)
+
+
+none : Html msg
+none =
+    Html.text ""
 
 
 bold : String -> Html msg
@@ -14,6 +20,13 @@ bold string =
         |> Html.text
         |> List.singleton
         |> Html.span [ Attr.css [ Css.fontWeight Css.bold ] ]
+
+
+list : List (Html msg) -> Html msg
+list content =
+    content
+        |> List.map (\e -> [ e ] |> Html.li [])
+        |> Html.ul []
 
 
 table : List String -> List (List (Html msg)) -> Html msg
@@ -67,6 +80,13 @@ row =
     Html.p []
 
 
+column : List (Html msg) -> Html msg
+column content =
+    content
+        |> List.map elem
+        |> Html.div []
+
+
 paragraph : String -> Html msg
 paragraph string =
     Html.p [] [ Html.text string ]
@@ -97,6 +117,6 @@ button string maybeMsg =
             "[" ++ string ++ "]" |> Html.text
 
 
-link : String -> Route -> Html msg
-link string route =
-    Html.a [ Attr.href (route |> Gen.Route.toHref) ] [ Html.text string ]
+link : Route -> Html msg
+link route =
+    Html.a [ Attr.href (route |> Gen.Route.toHref) ] [ Html.text (Route.toString route) ]

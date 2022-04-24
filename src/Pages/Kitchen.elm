@@ -3,7 +3,7 @@ module Pages.Kitchen exposing (Model, Msg, page)
 import Config
 import Css
 import Data.AnyBag as AnyBag
-import Data.DiceBag as DiceBag
+import Data.DiceBag as DiceBag exposing (DiceBag)
 import Data.Die as Dice exposing (Die)
 import Data.Food as Food exposing (Food(..))
 import Data.Food.Fish as Fish exposing (Fish)
@@ -182,22 +182,42 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Kitchen"
     , body =
-        [ (if DiceBag.isEmpty shared.dice then
-            [ [ Style.button "Roll the dice" (Just Rethrow)
-              , " to start the next turn." |> Html.text
+        [ if DiceBag.isEmpty shared.dice then
+            [ Style.button "Roll the dice" (Just Rethrow)
+            , " to start the next turn." |> Html.text
+            ]
+                |> Style.row
+
+          else
+            [ [ "You can use vegetables from the " |> Html.text
+              , Style.link Route.Fields
+              , " to modify your die. " |> Html.text
               ]
                 |> Style.row
-            ]
+            , if shared.dice |> DiceBag.streets |> List.isEmpty then
+                Style.none
 
-           else
-            [ "You can use food to modify die and add more dice. "
-                |> Style.paragraph
+              else
+                [ "Head over to the " |> Html.text
+                , Style.link Route.Lake
+                , " to catch a fish. Fish give you extra die." |> Html.text
+                ]
+                    |> Style.row
+            , if shared.dice |> DiceBag.toList |> List.filter (\( _, n ) -> n >= 2) |> List.isEmpty then
+                Style.none
+
+              else
+                [ "Head over to the " |> Html.text
+                , Style.link Route.Mine
+                , " to mine some ore and sell it for good money." |> Html.text
+                ]
+                    |> Style.row
             , shared.dice
                 |> DiceBag.toList
                 |> List.map (viewDie shared)
                 |> Style.filledRow
             , [ "To end your turn, go to the " |> Html.text
-              , Style.link "woods" Route.Woods
+              , Style.link Route.Woods
               , " and chop some wood." |> Html.text
               ]
                 |> Style.row
@@ -230,12 +250,15 @@ view shared model =
                 |> List.intersperse (Html.text " ")
                 |> Style.row
             ]
-          )
-            |> Style.section "Your Dice"
-        , Style.section "Food"
-            [ shared.items
-                |> viewItems
-            ]
+                |> Style.section ("Your Dice: " ++ (shared.dice |> DiceBag.toString))
+        , if AnyBag.isEmpty shared.items then
+            Style.none
+
+          else
+            Style.section "Food"
+                [ shared.items
+                    |> viewItems
+                ]
         ]
     }
 

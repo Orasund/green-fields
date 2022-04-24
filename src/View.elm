@@ -43,14 +43,6 @@ toBrowserDocument model view =
     { title = Config.title
     , body =
         [ Html.node "link" [ Attr.rel "stylesheet", Attr.href "vanilla.css" ] []
-        , Style.paragraph ""
-        , Style.filledRow
-            [ Style.link "Kitchen" Route.Kitchen
-            , Style.link "Lake" Route.Lake
-            , Style.link "Mine" Route.Mine
-            , Style.link "Fields" Route.Fields
-            , Style.link "Woods" Route.Woods
-            ]
         , Style.filledRow
             [ model.dice
                 |> DiceBag.toString
@@ -58,6 +50,16 @@ toBrowserDocument model view =
                 |> Style.elem
             , (model.money |> String.fromInt) ++ Config.moneySymbol |> Html.text |> Style.elem
             ]
+        , Style.bold "Locations: "
+            :: ([ Style.link Route.Kitchen
+                , Style.link Route.Lake
+                , Style.link Route.Mine
+                , Style.link Route.Fields
+                , Style.link Route.Woods
+                ]
+                    |> List.intersperse (Html.text " ")
+               )
+            |> Html.div []
         , Style.article view.title view.body
         , Style.paragraph ""
         ]

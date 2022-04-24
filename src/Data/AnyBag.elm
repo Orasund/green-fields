@@ -12,6 +12,11 @@ empty =
     AnyDict.empty
 
 
+isEmpty : AnyBag comparable k -> Bool
+isEmpty =
+    AnyDict.isEmpty
+
+
 count : k -> AnyBag comparable k -> Int
 count k bag =
     bag |> AnyDict.get k |> Maybe.withDefault 0
