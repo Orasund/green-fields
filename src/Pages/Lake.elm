@@ -1,9 +1,10 @@
 module Pages.Lake exposing (Model, Msg, page)
 
 import Config
-import Data.Dice as Dice exposing (Dice)
 import Data.DiceBag as DiceBag exposing (DiceBag)
+import Data.Die as Dice exposing (Die)
 import Data.Food as Food
+import Data.Food.Fish as Fish
 import Effect exposing (Effect)
 import Gen.Params.Lake exposing (Params)
 import Html.Styled as Html exposing (Html)
@@ -44,7 +45,7 @@ init =
 
 
 type Msg
-    = Catch (List Dice)
+    = Catch (List Die)
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -60,10 +61,11 @@ update msg model =
                     |> Just
               , list
                     |> List.length
-                    |> Food.fromStreet
+                    |> Fish.fromStreet
                     |> Maybe.map
-                        (\food ->
-                            food
+                        (\fish ->
+                            fish
+                                |> Food.FishFood
                                 |> Shared.AddItem
                                 |> Effect.fromShared
                         )
@@ -86,27 +88,29 @@ subscriptions model =
 -- VIEW
 
 
-viewStreet : List Dice -> Maybe (Html Msg)
+viewStreet : List Die -> Maybe (Html Msg)
 viewStreet list =
     list
         |> List.length
-        |> Food.fromStreet
+        |> Fish.fromStreet
         |> Maybe.map
-            (\food ->
+            (\fish ->
                 let
                     name =
-                        food |> Food.toString
+                        fish |> Fish.toString
                 in
                 Style.section ("Catch " ++ name)
-                    [ "Use "
-                        ++ (list
-                                |> List.map Dice.toString
-                                |> String.concat
-                           )
-                        ++ " to catch a "
-                        ++ name
-                        |> Html.text
-                    , Catch list |> Just |> Style.button ("Catch " ++ name)
+                    [ [ "Use "
+                            ++ (list
+                                    |> List.map Dice.toString
+                                    |> String.concat
+                               )
+                            ++ " to "
+                            |> Html.text
+                      , Catch list |> Just |> Style.button ("Catch a " ++ name)
+                      , "." |> Html.text
+                      ]
+                        |> Style.row
                     ]
             )
 
@@ -131,7 +135,5 @@ view shared model =
                     ]
 
                 list ->
-                    [ "You are lucky today. " |> Style.paragraph
-                    ]
-                        ++ list
+                    list
     }

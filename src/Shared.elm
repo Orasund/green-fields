@@ -7,10 +7,12 @@ module Shared exposing
     , update
     )
 
+import Array exposing (Array)
 import Data.AnyBag as AnyBag exposing (AnyBag)
-import Data.Dice as Dice
 import Data.DiceBag as Dicebag exposing (DiceBag)
+import Data.Die as Dice
 import Data.Food as Food exposing (Food)
+import Data.Food.Vegetable as Vegetable exposing (Vegetable)
 import Json.Decode as Json
 import Random exposing (Generator, Seed)
 import Request exposing (Request)
@@ -25,6 +27,7 @@ type alias Model =
     , money : Int
     , seed : Seed
     , items : AnyBag String Food
+    , fields : Array (Maybe Vegetable)
     }
 
 
@@ -32,7 +35,13 @@ type Msg
     = NoOp
     | UpdateModel (Model -> Model)
     | AddItem Food
+    | RemoveItem Food
+    | AddField
+    | Plant Int Vegetable
+    | RemovePlant Int
     | AddMoney Int
+    | AddRandomDice Int
+    | AddDice DiceBag
     | RemoveDice DiceBag
     | Rethrow
 
@@ -43,6 +52,7 @@ init _ _ =
       , money = 0
       , seed = Random.initialSeed 42
       , items = AnyBag.empty Food.toString
+      , fields = Array.fromList [ Nothing ]
       }
     , Random.independentSeed |> Random.generate (\seed -> UpdateModel (\m -> { m | seed = seed }))
     )
@@ -58,7 +68,7 @@ applyGenerator seed generator =
 
 
 update : Request -> Msg -> Model -> ( Model, Cmd Msg )
-update _ msg model =
+update request msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
@@ -68,6 +78,18 @@ update _ msg model =
 
         AddItem item ->
             ( { model | items = model.items |> AnyBag.insert 1 item }, Cmd.none )
+
+        RemoveItem item ->
+            ( { model | items = model.items |> AnyBag.remove 1 item }, Cmd.none )
+
+        AddField ->
+            ( { model | fields = model.fields |> Array.push Nothing }, Cmd.none )
+
+        Plant i vegi ->
+            ( { model | fields = model.fields |> Array.set i (Just vegi) }, Cmd.none )
+
+        RemovePlant i ->
+            ( { model | fields = model.fields |> Array.set i Nothing }, Cmd.none )
 
         Rethrow ->
             ( Dice.random
@@ -82,6 +104,24 @@ update _ msg model =
 
         AddMoney money ->
             ( { model | money = model.money + money }, Cmd.none )
+
+        AddRandomDice amount ->
+            model.seed
+                |> Random.step (Dice.random |> Random.map (\dice -> Dicebag.fromList [ ( dice, 1 ) ]))
+                |> (\( dice, seed ) -> { model | seed = seed } |> update request (AddDice dice))
+
+        AddDice selectedDice ->
+            ( { model
+                | dice =
+                    model.dice
+                        |> Dicebag.addAll
+                            (selectedDice
+                                |> Dicebag.toList
+                                |> List.concatMap (\( i, n ) -> List.repeat n i)
+                            )
+              }
+            , Cmd.none
+            )
 
         RemoveDice selectedDice ->
             ( { model

@@ -1,11 +1,11 @@
 module Pages.Woods exposing (Model, Msg, page)
 
 import Config
-import Data.Dice as Dice exposing (Dice)
 import Data.DiceBag as DiceBag exposing (DiceBag)
+import Data.Die as Dice exposing (Die)
 import Effect exposing (Effect)
 import Gen.Params.Woods exposing (Params)
-import Html.Styled as Html
+import Html.Styled as Html exposing (Html)
 import Page
 import Request
 import Shared
@@ -42,8 +42,9 @@ init =
 
 
 type Msg
-    = SelectDice Int Dice
-    | UnselectDie Dice
+    = SelectDice Int Die
+    | SelectAllAndChop DiceBag
+    | UnselectDie Die
     | ChopWood
 
 
@@ -59,6 +60,12 @@ update msg model =
             , Effect.none
             )
 
+        SelectAllAndChop selectedDice ->
+            { model
+                | selectedDice = selectedDice
+            }
+                |> update ChopWood
+
         UnselectDie die ->
             ( { model | selectedDice = model.selectedDice |> DiceBag.remove die }, Effect.none )
 
@@ -68,7 +75,7 @@ update msg model =
                 [ Shared.RemoveDice model.selectedDice |> Effect.fromShared
                 , model.selectedDice
                     |> DiceBag.size
-                    |> (*) 2
+                    |> (*) Config.priceOfWood
                     |> Shared.AddMoney
                     |> Effect.fromShared
                 ]
@@ -88,6 +95,55 @@ subscriptions model =
 -- VIEW
 
 
+viewSelection : Shared.Model -> DiceBag -> Html Msg
+viewSelection shared selectedDice =
+    [ [ "Remaining", "Selected" ]
+        |> List.map
+            (\string ->
+                string |> Html.text |> Style.elem
+            )
+        |> Style.filledRow
+    , shared.dice
+        |> DiceBag.toList
+        |> List.map
+            (\( die, n ) ->
+                let
+                    selected =
+                        selectedDice |> DiceBag.count die
+                in
+                [ List.repeat (n - selected) (die |> Dice.toString)
+                    |> String.concat
+                    |> Html.text
+                    |> Style.elem
+                , [ List.repeat selected (die |> Dice.toString)
+                        |> String.concat
+                        |> Html.text
+                  , Style.button "-"
+                        (if selected > 0 then
+                            Just (UnselectDie die)
+
+                         else
+                            Nothing
+                        )
+                  , selected |> String.fromInt |> Html.text
+                  , Style.button "+"
+                        (if selected < n then
+                            Just (SelectDice 1 die)
+
+                         else
+                            Nothing
+                        )
+                  ]
+                    |> List.intersperse (Html.text " ")
+                    |> Style.row
+                ]
+                    |> Style.filledRow
+            )
+        |> Style.row
+    ]
+        |> Html.div []
+
+
 view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Woods"
@@ -96,68 +152,20 @@ view shared model =
             [ NoDice.view ]
 
         else
-            [ "You can use leftover die to choop some wood." |> Style.paragraph
-            , Style.section "Choop Wood"
-                [ "Select the dice you want to use for chopping."
-                    |> Style.paragraph
-                , shared.dice
-                    |> DiceBag.toList
-                    |> List.map
-                        (\( die, n ) ->
-                            let
-                                selected =
-                                    model.selectedDice |> DiceBag.count die
-                            in
-                            [ List.repeat (n - selected) (die |> Dice.toString)
-                                |> String.concat
-                                |> Html.text
-                                |> List.singleton
-                                |> Html.div []
-                            , [ List.repeat selected (die |> Dice.toString)
-                                    |> String.concat
-                                    |> Html.text
-                                    |> List.singleton
-                                    |> Html.div []
-                              , [ Style.button "-"
-                                    (if selected > 0 then
-                                        Just (UnselectDie die)
-
-                                     else
-                                        Nothing
-                                    )
-                                , Html.text " "
-                                , selected |> String.fromInt |> Html.text
-                                , Html.text " "
-                                , Style.button "+"
-                                    (if selected < n then
-                                        Just (SelectDice 1 die)
-
-                                     else
-                                        Nothing
-                                    )
-                                , Html.text " "
-                                , Style.button "++"
-                                    (if selected < n then
-                                        Just (SelectDice (n - selected) die)
-
-                                     else
-                                        Nothing
-                                    )
-                                ]
-                                    |> Html.div []
-                              ]
-                                |> Style.filledRow
-                            ]
-                        )
-                    |> Style.table [ "Remaining", "Selected" ]
-                , Style.paragraph ""
-                , Style.button "Chop Wood"
-                    (if DiceBag.isEmpty model.selectedDice then
+            [ [ "You can use all leftover dice to " |> Html.text
+              , Style.button "Chop wood"
+                    (if model.selectedDice == shared.dice then
                         Nothing
 
                      else
-                        Just ChopWood
+                        Just (SelectAllAndChop shared.dice)
                     )
-                ]
+              , " and gain "
+                    ++ (Config.priceOfWood * DiceBag.size shared.dice |> String.fromInt)
+                    ++ Config.moneySymbol
+                    ++ "."
+                    |> Html.text
+              ]
+                |> Style.row
             ]
     }

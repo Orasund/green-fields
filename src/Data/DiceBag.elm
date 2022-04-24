@@ -1,6 +1,6 @@
 module Data.DiceBag exposing (..)
 
-import Data.Dice as Dice exposing (Dice)
+import Data.Die as Dice exposing (Die)
 import Random exposing (Generator)
 import StaticArray exposing (StaticArray)
 import StaticArray.Index as Index exposing (Index, Six)
@@ -13,7 +13,7 @@ type alias DiceBag =
 
 empty : DiceBag
 empty =
-    StaticArray.fromList (Length.plus1 Length.five) 0 []
+    StaticArray.fromList (Length.plus1 Length.five) ( 0, [] )
 
 
 isEmpty : DiceBag -> Bool
@@ -31,12 +31,17 @@ size diceBag =
         |> List.sum
 
 
-count : Dice -> DiceBag -> Int
+count : Die -> DiceBag -> Int
 count dice =
     StaticArray.get dice
 
 
-addAll : List Dice -> DiceBag -> DiceBag
+member : Die -> DiceBag -> Bool
+member die diceBag =
+    count die diceBag > 0
+
+
+addAll : List Die -> DiceBag -> DiceBag
 addAll list diceBag =
     diceBag
         |> addAllN
@@ -45,36 +50,36 @@ addAll list diceBag =
             )
 
 
-addAllN : List ( Dice, Int ) -> DiceBag -> DiceBag
+addAllN : List ( Die, Int ) -> DiceBag -> DiceBag
 addAllN list diceBag =
     list
         |> List.foldl (\( i, n ) -> addN n i)
             diceBag
 
 
-removeAll : List Dice -> DiceBag -> DiceBag
+removeAll : List Die -> DiceBag -> DiceBag
 removeAll list diceBag =
     list
         |> List.foldl remove diceBag
 
 
-addN : Int -> Dice -> DiceBag -> DiceBag
+addN : Int -> Die -> DiceBag -> DiceBag
 addN n i bag =
     bag |> StaticArray.set i (bag |> StaticArray.get i |> (+) n)
 
 
-remove : Dice -> DiceBag -> DiceBag
+remove : Die -> DiceBag -> DiceBag
 remove i bag =
     bag |> StaticArray.set i (bag |> StaticArray.get i |> (+) -1 |> max 0)
 
 
-fromList : List ( Dice, Int ) -> DiceBag
+fromList : List ( Die, Int ) -> DiceBag
 fromList list =
     empty
         |> addAllN list
 
 
-toList : DiceBag -> List ( Dice, Int )
+toList : DiceBag -> List ( Die, Int )
 toList diceBag =
     diceBag
         |> StaticArray.indexedMap (\i n -> ( i, n ))
@@ -96,7 +101,7 @@ toString diceBag =
         |> String.join " "
 
 
-streets : DiceBag -> List (List Dice)
+streets : DiceBag -> List (List Die)
 streets bag =
     case toList bag of
         [] ->

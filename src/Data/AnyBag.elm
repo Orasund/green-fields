@@ -12,6 +12,16 @@ empty =
     AnyDict.empty
 
 
+count : k -> AnyBag comparable k -> Int
+count k bag =
+    bag |> AnyDict.get k |> Maybe.withDefault 0
+
+
+member : k -> AnyBag comparable k -> Bool
+member k bag =
+    bag |> AnyDict.member k
+
+
 insert : Int -> k -> AnyBag comparable k -> AnyBag comparable k
 insert n k bag =
     bag
@@ -31,7 +41,11 @@ insert n k bag =
                             Nothing
 
                         Just m ->
-                            m - n |> max 0 |> Just
+                            if m + n > 0 then
+                                Just (n + m)
+
+                            else
+                                Nothing
             )
 
 

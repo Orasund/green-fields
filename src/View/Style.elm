@@ -8,12 +8,20 @@ import Html.Styled.Events as Events
 import Shared exposing (Msg)
 
 
+bold : String -> Html msg
+bold string =
+    string
+        |> Html.text
+        |> List.singleton
+        |> Html.span [ Attr.css [ Css.fontWeight Css.bold ] ]
+
+
 table : List String -> List (List (Html msg)) -> Html msg
 table header rows =
     (header
         |> List.map
-            (\elem ->
-                elem
+            (\e ->
+                e
                     |> Html.text
                     |> List.singleton
                     |> Html.th []
@@ -22,11 +30,11 @@ table header rows =
     )
         :: (rows
                 |> List.map
-                    (\row ->
-                        row
+                    (\r ->
+                        r
                             |> List.map
-                                (\elem ->
-                                    elem
+                                (\e ->
+                                    e
                                         |> List.singleton
                                         |> Html.td []
                                 )
@@ -45,6 +53,18 @@ filledRow =
             , Css.num 1 |> Css.flex
             ]
         ]
+
+
+elem : Html msg -> Html msg
+elem content =
+    content
+        |> List.singleton
+        |> Html.div []
+
+
+row : List (Html msg) -> Html msg
+row =
+    Html.p []
 
 
 paragraph : String -> Html msg

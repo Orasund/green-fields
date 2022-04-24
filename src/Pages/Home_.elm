@@ -1,6 +1,7 @@
 module Pages.Home_ exposing (view)
 
 import Config
+import Css
 import Gen.Route as Route exposing (Route(..))
 import Html
 import Html.Attributes as Attr
@@ -18,7 +19,7 @@ view =
             ++ "This means you throw dice and then use them for various actions. "
             ++ "The theme of this game is farming, mining and crafting. "
             ++ "If this is up your allay, "
-            ++ "click on the link below to head over to the kitchen and start throwing dice."
+            ++ "click on the link below to head over to the kitchen and start rolling some dice."
             |> Style.paragraph
         , Style.link "To the Kitchen" Route.Kitchen
         ]

@@ -1,4 +1,4 @@
-module Data.Dice exposing (..)
+module Data.Die exposing (..)
 
 import Random exposing (Generator)
 import StaticArray exposing (StaticArray)
@@ -6,16 +6,29 @@ import StaticArray.Index as Index exposing (Index, Six)
 import StaticArray.Length as Length exposing (Length)
 
 
-type alias Dice =
+type alias Die =
     Index Six
 
 
 length : Length Six
 length =
-    Length.plus1 Length.five
+    Length.six
 
 
-random : Generator Dice
+fromInt : Int -> Die
+fromInt =
+    Index.fromLessThen length
+
+
+add : Int -> Die -> Maybe Die
+add int die =
+    die
+        |> Index.toInt
+        |> (+) int
+        |> Index.fromInt length
+
+
+random : Generator Die
 random =
     Random.int 0 5
         |> Random.map (Index.fromLessThen length)
@@ -23,10 +36,11 @@ random =
 
 internalAsString : StaticArray Six String
 internalAsString =
-    StaticArray.fromList length "⚀" [ "⚁", "⚂", "⚃", "⚄", "⚅" ]
+    ( "⚀", [ "⚁", "⚂", "⚃", "⚄", "⚅" ] )
+        |> StaticArray.fromList length
 
 
-toString : Dice -> String
+toString : Die -> String
 toString dice =
     internalAsString
         |> StaticArray.get dice

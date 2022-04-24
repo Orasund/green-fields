@@ -1,56 +1,50 @@
 module Data.Food exposing (..)
 
-
-type Fish
-    = Bass
-    | Trout
-    | Salmon
+import Data.Die as Die exposing (Die)
+import Data.Food.Fish as Fish exposing (Fish)
+import Data.Food.Vegetable as Vegetable exposing (Vegetable)
 
 
 type Food
     = FishFood Fish
+    | VegetableFood Vegetable
 
 
 toString : Food -> String
 toString food =
     case food of
         FishFood fish ->
-            case fish of
-                Bass ->
-                    "Bass"
+            fish |> Fish.toString
 
-                Trout ->
-                    "Trout"
-
-                Salmon ->
-                    "Salmon"
+        VegetableFood vegetable ->
+            vegetable |> Vegetable.toString
 
 
-price : Fish -> Int
-price fish =
-    case fish of
-        Bass ->
-            10
+price : Food -> Int
+price food =
+    case food of
+        FishFood fish ->
+            Fish.price fish
 
-        Trout ->
-            20
-
-        Salmon ->
-            40
+        VegetableFood vegetable ->
+            5
 
 
-fromStreet : Int -> Maybe Food
-fromStreet streetLength =
-    Maybe.map FishFood
-        (if streetLength == 3 then
-            Just Bass
+description : Food -> String
+description food =
+    case food of
+        FishFood fish ->
+            "Add " ++ String.fromInt (Fish.toAmount fish) ++ " temporary dice."
 
-         else if streetLength == 4 then
-            Just Trout
+        VegetableFood vegetable ->
+            (vegetable
+                |> Vegetable.modifier
+                |> (\int ->
+                        if int > 0 then
+                            "+" ++ String.fromInt int
 
-         else if streetLength == 5 then
-            Just Salmon
-
-         else
-            Nothing
-        )
+                        else
+                            String.fromInt int
+                   )
+            )
+                ++ " on any die."

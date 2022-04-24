@@ -3,8 +3,8 @@ module View exposing (View, map, none, placeholder, toBrowserDocument)
 import Browser
 import Config
 import Css
-import Data.Dice as Dice
 import Data.DiceBag as DiceBag
+import Data.Die as Dice
 import Gen.Route as Route
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
@@ -42,21 +42,24 @@ toBrowserDocument : Model -> View msg -> Browser.Document msg
 toBrowserDocument model view =
     { title = Config.title
     , body =
-        [ Html.node "link" [ Attr.rel "stylesheet", Attr.href "https://vanillacss.com/vanilla.css" ] []
+        [ Html.node "link" [ Attr.rel "stylesheet", Attr.href "vanilla.css" ] []
+        , Style.paragraph ""
         , Style.filledRow
             [ Style.link "Kitchen" Route.Kitchen
             , Style.link "Lake" Route.Lake
+            , Style.link "Mine" Route.Mine
+            , Style.link "Fields" Route.Fields
             , Style.link "Woods" Route.Woods
             ]
         , Style.filledRow
             [ model.dice
                 |> DiceBag.toString
                 |> Html.text
-                |> List.singleton
-                |> Html.div []
-            , (model.money |> String.fromInt) ++ "G" |> Html.text |> List.singleton |> Html.div []
+                |> Style.elem
+            , (model.money |> String.fromInt) ++ Config.moneySymbol |> Html.text |> Style.elem
             ]
         , Style.article view.title view.body
+        , Style.paragraph ""
         ]
             |> List.map Html.toUnstyled
     }
