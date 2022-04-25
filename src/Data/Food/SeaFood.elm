@@ -1,6 +1,7 @@
-module Data.Food.Fish exposing (..)
+module Data.Food.SeaFood exposing (..)
 
 import Config
+import Gen.Enum.SeaFood
 
 
 type Fish

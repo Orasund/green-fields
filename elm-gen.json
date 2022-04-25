@@ -1,0 +1,6 @@
+{
+  "moduleBase": "Gen",
+  "typeName": "SeaFood",
+  "template": "Enum",
+  "arguments": ["Fish", "Octopus", "Lobster"]
+}

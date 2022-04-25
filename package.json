@@ -1,0 +1,21 @@
+{
+  "name": "green-fields",
+  "version": "1.0.0",
+  "description": "> 🌳  built with [elm-spa](https://elm-spa.dev)",
+  "scripts": {
+    "gen": "node elm-gen.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Orasund/green-fields.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Orasund/green-fields/issues"
+  },
+  "homepage": "https://github.com/Orasund/green-fields#readme",
+  "dependencies": {
+    "handlebars": "^4.7.7"
+  }
+}

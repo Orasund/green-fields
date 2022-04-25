@@ -4,7 +4,7 @@ import Config
 import Data.DiceBag as DiceBag exposing (DiceBag)
 import Data.Die as Dice exposing (Die)
 import Data.Food as Food
-import Data.Food.Fish as Fish
+import Data.Food.SeaFood as Fish
 import Effect exposing (Effect)
 import Gen.Params.Lake exposing (Params)
 import Html.Styled as Html exposing (Html)
