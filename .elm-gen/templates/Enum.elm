@@ -1,11 +1,11 @@
-module {{moduleBase}}.{{template}}.{{typeName}} exposing (..)
+module {{moduleBase}}.{{template}}.{{moduleName}} exposing (..)
 
 {-| This is a generated file. DO NOT CHANGE ANYTHING.
 
 
 # Basics
 
-@docs {{typeName}}, asList{{#constructors}}, {{decapitalize .}}{{/constructors}}
+@docs {{moduleName}}, asList{{#sorts}}, {{decapitalize .}}{{/sorts}}
 
 
 # Converters
@@ -18,56 +18,56 @@ module {{moduleBase}}.{{template}}.{{typeName}} exposing (..)
 -- BASICS
 -------------------------------------------------------------------------------
 
-type {{typeName}}
-{{#constructors}}
+type {{moduleName}}
+{{#sorts}}
 {{#if @first}}   = {{.}}
 {{else}}   | {{.}}
 {{/if}}
-{{/constructors}}
+{{/sorts}}
 
-asList : List {{typeName}}
+asList : List {{moduleName}}
 asList =
-{{#constructors}}{{#if @first}}    [ {{.}}{{else}}
-    , {{.}}{{/if}}{{/constructors}}
+{{#sorts}}{{#if @first}}    [ {{.}}{{else}}
+    , {{.}}{{/if}}{{/sorts}}
     ]
 
-{{#constructors}}
-{{decapitalize .}} : {{../typeName}}
+{{#sorts}}
+{{decapitalize .}} : {{../moduleName}}
 {{decapitalize .}} =
     {{.}}
 
-{{/constructors}}
+{{/sorts}}
 
 -------------------------------------------------------------------------------
 -- CONVERTERS
 -------------------------------------------------------------------------------
 
-toInt : {{typeName}} -> Int
+toInt : {{moduleName}} -> Int
 toInt arg =
     case arg of
-{{#constructors}}
+{{#sorts}}
         {{.}} -> {{@index}}
-{{/constructors}}
+{{/sorts}}
 
-fromInt : Int -> Maybe {{typeName}}
+fromInt : Int -> Maybe {{moduleName}}
 fromInt int =
     case int of
-{{#constructors}}
+{{#sorts}}
         {{@index}} -> Just {{.}} 
-{{/constructors}}
+{{/sorts}}
         _ -> Nothing
     
-toString : {{typeName}} -> String
+toString : {{moduleName}} -> String
 toString arg =
     case arg of
-{{#constructors}}
+{{#sorts}}
         {{.}} -> "{{.}}"
-{{/constructors}}
+{{/sorts}}
 
-fromString : String -> Maybe {{typeName}}
+fromString : String -> Maybe {{moduleName}}
 fromString arg =
     case arg of
-{{#constructors}}
+{{#sorts}}
         "{{.}}" -> Just {{.}} 
-{{/constructors}}
+{{/sorts}}
         _ -> Nothing
