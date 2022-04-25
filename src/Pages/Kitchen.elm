@@ -6,7 +6,7 @@ import Data.AnyBag as AnyBag
 import Data.DiceBag as DiceBag exposing (DiceBag)
 import Data.Die as Dice exposing (Die)
 import Data.Food as Food exposing (Food(..))
-import Data.Food.SeaFood as Fish exposing (Fish)
+import Data.Food.SeaFood as Fish exposing (SeaFood)
 import Data.Food.Vegetable as Vegetable exposing (Vegetable)
 import Effect exposing (Effect)
 import Gen.Params.Kitchen exposing (Params)
@@ -50,7 +50,7 @@ init =
 type Msg
     = Rethrow
     | Sell Food
-    | ApplyFish Fish
+    | ApplyFish SeaFood
     | ApplyVegetable Die Vegetable
 
 

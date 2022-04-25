@@ -1,21 +1,19 @@
 module Data.Food.SeaFood exposing (..)
 
 import Config
-import Gen.Enum.SeaFood
+import Gen.Enum.SeaFood exposing (SeaFood(..))
 
 
-type Fish
-    = Fish
-    | Octopus
-    | Lobster
+type alias SeaFood =
+    Gen.Enum.SeaFood.SeaFood
 
 
-asList : List Fish
+asList : List SeaFood
 asList =
-    [ Fish, Octopus, Lobster ]
+    Gen.Enum.SeaFood.asList
 
 
-emoji : Fish -> String
+emoji : SeaFood -> String
 emoji fish =
     case fish of
         Fish ->
@@ -28,27 +26,17 @@ emoji fish =
             "🦞"
 
 
-toString : Fish -> String
+toString : SeaFood -> String
 toString fish =
-    emoji fish
-        ++ (case fish of
-                Fish ->
-                    "Fish"
-
-                Octopus ->
-                    "Octopus"
-
-                Lobster ->
-                    "Lobster"
-           )
+    emoji fish ++ Gen.Enum.SeaFood.toString fish
 
 
-price : Fish -> Int
+price : SeaFood -> Int
 price fish =
     2 ^ (toAmount fish - 1) * Config.fishBasePrice
 
 
-fromStreet : Int -> Maybe Fish
+fromStreet : Int -> Maybe SeaFood
 fromStreet streetLength =
     if streetLength == 3 then
         Just Fish
@@ -63,7 +51,7 @@ fromStreet streetLength =
         Nothing
 
 
-toAmount : Fish -> Int
+toAmount : SeaFood -> Int
 toAmount fish =
     case fish of
         Fish ->

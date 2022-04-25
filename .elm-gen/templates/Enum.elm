@@ -2,55 +2,72 @@ module {{moduleBase}}.{{template}}.{{typeName}} exposing (..)
 
 {-| This is a generated file. DO NOT CHANGE ANYTHING.
 
+
 # Basics
 
-@docs {{typeName}},asList
+@docs {{typeName}}, asList{{#constructors}}, {{decapitalize .}}{{/constructors}}
+
 
 # Converters
 
-@docs toInt,fromInt,toString,fromString
+@docs toInt, fromInt, toString, fromString
 
 -}
 
+-------------------------------------------------------------------------------
+-- BASICS
+-------------------------------------------------------------------------------
+
 type {{typeName}}
-{{#arguments}}
-{{#unless @index}}   = {{.}}
+{{#constructors}}
+{{#if @first}}   = {{.}}
 {{else}}   | {{.}}
-{{/unless}}
-{{/arguments}}
+{{/if}}
+{{/constructors}}
 
 asList : List {{typeName}}
 asList =
-{{#arguments}}{{#unless @index}}  [ {{.}}{{else}}
-  , {{.}}{{/unless}}{{/arguments}}
-  ]
+{{#constructors}}{{#if @first}}    [ {{.}}{{else}}
+    , {{.}}{{/if}}{{/constructors}}
+    ]
+
+{{#constructors}}
+{{decapitalize .}} : {{../typeName}}
+{{decapitalize .}} =
+    {{.}}
+
+{{/constructors}}
+
+-------------------------------------------------------------------------------
+-- CONVERTERS
+-------------------------------------------------------------------------------
 
 toInt : {{typeName}} -> Int
 toInt arg =
-  case arg of
-{{#arguments}}
-    {{.}} -> {{@index}}
-{{/arguments}}
+    case arg of
+{{#constructors}}
+        {{.}} -> {{@index}}
+{{/constructors}}
 
 fromInt : Int -> Maybe {{typeName}}
 fromInt int =
-  case int of
-{{#arguments}}
-    {{@index}} -> Just {{.}} 
-{{/arguments}}
-    _ -> Nothing
+    case int of
+{{#constructors}}
+        {{@index}} -> Just {{.}} 
+{{/constructors}}
+        _ -> Nothing
     
 toString : {{typeName}} -> String
 toString arg =
-  case arg of
-{{#arguments}}
-    {{.}} -> "{{.}}"
-{{/arguments}}
+    case arg of
+{{#constructors}}
+        {{.}} -> "{{.}}"
+{{/constructors}}
 
 fromString : String -> Maybe {{typeName}}
 fromString arg =
-  case arg of
-{{#arguments}}
-    "{{.}}" -> Just {{.}} 
-{{/arguments}}
-    _ -> Nothing
+    case arg of
+{{#constructors}}
+        "{{.}}" -> Just {{.}} 
+{{/constructors}}
+        _ -> Nothing
