@@ -1,5 +1,7 @@
 {
   "moduleBase": "Gen",
+  "generateInto": "elm-gen/genereated",
+  "templatesFrom": "elm-gen/templates",
   "modules": {
     "SeaFood": { "Enum": { "sorts": ["Fish", "Octopus", "Lobster"] } },
     "Vegetable": {
