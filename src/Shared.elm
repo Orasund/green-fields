@@ -12,9 +12,13 @@ import Data.AnyBag as AnyBag exposing (AnyBag)
 import Data.DiceBag as Dicebag exposing (DiceBag)
 import Data.Die as Dice
 import Data.Food as Food exposing (Food)
+import Data.Food.SeaFood as SeaFood
 import Data.Food.Vegetable as Vegetable exposing (Vegetable)
+import Data.Stone
+import Gen.Record.Shared as Shared
 import Json.Decode as Json
 import Random exposing (Generator, Seed)
+import Random.List
 import Request exposing (Request)
 
 
@@ -23,19 +27,18 @@ type alias Flags =
 
 
 type alias Model =
-    { dice : DiceBag
-    , money : Int
-    , seed : Seed
-    , items : AnyBag String Food
-    , fields : Array (Maybe Vegetable)
-    }
+    Shared.Shared
 
 
 type Msg
     = NoOp
-    | UpdateModel (Model -> Model)
-    | AddItem Food
-    | RemoveItem Food
+    | GotSeed Seed
+    | Fish SeaFood.SeaFood
+    | AddToFishingPool SeaFood.SeaFood
+    | AddSeaFood
+    | AddFood Food
+    | RemoveFood Int Food
+    | AddStone Int Data.Stone.Stone
     | AddField
     | Plant Int Vegetable
     | RemovePlant Int
@@ -51,10 +54,12 @@ init _ _ =
     ( { dice = Dicebag.empty
       , money = 0
       , seed = Random.initialSeed 42
-      , items = AnyBag.empty Food.toString
+      , food = AnyBag.empty Food.toString
+      , stone = AnyBag.empty Data.Stone.toString
       , fields = Array.fromList [ Nothing ]
+      , fishingPool = ( SeaFood.default, [] )
       }
-    , Random.independentSeed |> Random.generate (\seed -> UpdateModel (\m -> { m | seed = seed }))
+    , Random.independentSeed |> Random.generate GotSeed
     )
 
 
@@ -69,41 +74,102 @@ applyGenerator seed generator =
 
 update : Request -> Msg -> Model -> ( Model, Cmd Msg )
 update request msg model =
+    let
+        noCmd m =
+            ( m, Cmd.none )
+    in
     case msg of
         NoOp ->
-            ( model, Cmd.none )
+            model |> noCmd
 
-        UpdateModel fun ->
-            ( fun model, Cmd.none )
+        GotSeed seed ->
+            model
+                |> Shared.setSeed seed
+                |> noCmd
 
-        AddItem item ->
-            ( { model | items = model.items |> AnyBag.insert 1 item }, Cmd.none )
-
-        RemoveItem item ->
-            ( { model | items = model.items |> AnyBag.remove 1 item }, Cmd.none )
-
-        AddField ->
-            ( { model | fields = model.fields |> Array.push Nothing }, Cmd.none )
-
-        Plant i vegi ->
-            ( { model | fields = model.fields |> Array.set i (Just vegi) }, Cmd.none )
-
-        RemovePlant i ->
-            ( { model | fields = model.fields |> Array.set i Nothing }, Cmd.none )
-
-        Rethrow ->
-            ( Dice.random
-                |> Random.list 3
+        Fish seaFood ->
+            model
+                |> Shared.getFishingPool
+                |> (\( head, tail ) -> Random.List.choose (seaFood :: head :: tail))
                 |> Random.map
-                    (\list ->
-                        { model | dice = Dicebag.empty |> Dicebag.addAll list }
+                    (\( maybe, list ) ->
+                        ( maybe |> Maybe.withDefault SeaFood.default
+                        , case list of
+                            [] ->
+                                ( SeaFood.default, [] )
+
+                            head :: tail ->
+                                ( head, tail )
+                        )
                     )
-                |> applyGenerator model.seed
+                |> (\generator -> Random.step generator model.seed)
+                |> (\( ( result, list ), seed ) ->
+                        model
+                            |> Shared.setSeed seed
+                            |> Shared.setFishingPool list
+                            |> update request (AddFood (Food.SeaFood result))
+                   )
+
+        AddToFishingPool seaFood ->
+            ( model
+                |> Shared.mapFishingPool (\( head, tail ) -> ( seaFood, head :: tail ))
             , Cmd.none
             )
 
+        AddSeaFood ->
+            model.fishingPool
+                |> (\( head, tail ) -> Random.List.choose (head :: tail))
+                |> Random.map
+                    (\( maybe, list ) ->
+                        ( maybe |> Maybe.withDefault SeaFood.default
+                        , case list of
+                            [] ->
+                                ( SeaFood.default, [] )
+
+                            head :: tail ->
+                                ( head, tail )
+                        )
+                    )
+                |> (\generator -> Random.step generator model.seed)
+                |> (\( ( seaFood, list ), seed ) ->
+                        model
+                            |> Shared.setSeed seed
+                            |> Shared.setFishingPool list
+                            |> update request (AddFood (Food.SeaFood seaFood))
+                   )
+
+        AddFood item ->
+            model |> Shared.mapFood (AnyBag.insert 1 item) |> noCmd
+
+        RemoveFood amount item ->
+            model |> Shared.mapFood (AnyBag.remove amount item) |> noCmd
+
+        AddStone amount stone ->
+            model
+                |> Shared.mapStone (AnyBag.insert amount stone)
+                |> noCmd
+
+        AddField ->
+            model |> Shared.mapFields (Array.push Nothing) |> noCmd
+
+        Plant i vegi ->
+            model |> Shared.mapFields (Array.set i (Just vegi)) |> noCmd
+
+        RemovePlant i ->
+            model |> Shared.mapFields (Array.set i Nothing) |> noCmd
+
+        Rethrow ->
+            Dice.random
+                |> Random.list 3
+                |> Random.map
+                    (\list ->
+                        model |> Shared.setDice (Dicebag.empty |> Dicebag.addAll list)
+                    )
+                |> applyGenerator model.seed
+                |> noCmd
+
         AddMoney money ->
-            ( { model | money = model.money + money }, Cmd.none )
+            model |> Shared.mapMoney ((+) money) |> noCmd
 
         AddRandomDice amount ->
             model.seed
@@ -115,30 +181,26 @@ update request msg model =
                 |> (\( dice, seed ) -> { model | seed = seed } |> update request (AddDice dice))
 
         AddDice selectedDice ->
-            ( { model
-                | dice =
-                    model.dice
-                        |> Dicebag.addAll
-                            (selectedDice
-                                |> Dicebag.toList
-                                |> List.concatMap (\( i, n ) -> List.repeat n i)
-                            )
-              }
-            , Cmd.none
-            )
+            model
+                |> Shared.mapDice
+                    (Dicebag.addAll
+                        (selectedDice
+                            |> Dicebag.toList
+                            |> List.concatMap (\( i, n ) -> List.repeat n i)
+                        )
+                    )
+                |> noCmd
 
         RemoveDice selectedDice ->
-            ( { model
-                | dice =
-                    model.dice
-                        |> Dicebag.removeAll
-                            (selectedDice
-                                |> Dicebag.toList
-                                |> List.concatMap (\( i, n ) -> List.repeat n i)
-                            )
-              }
-            , Cmd.none
-            )
+            model
+                |> Shared.mapDice
+                    (Dicebag.removeAll
+                        (selectedDice
+                            |> Dicebag.toList
+                            |> List.concatMap (\( i, n ) -> List.repeat n i)
+                        )
+                    )
+                |> noCmd
 
 
 subscriptions : Request -> Model -> Sub Msg

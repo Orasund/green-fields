@@ -51,7 +51,7 @@ type Msg
     = Rethrow
     | Sell Food
     | ApplyFish SeaFood
-    | ApplyVegetable Die Vegetable
+    | ApplyVegetable Int Die Vegetable
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -63,14 +63,14 @@ update msg model =
         Sell food ->
             ( model
             , [ food |> Food.price |> Shared.AddMoney |> Effect.fromShared
-              , food |> Shared.RemoveItem |> Effect.fromShared
+              , food |> Shared.RemoveFood 1 |> Effect.fromShared
               ]
                 |> Effect.batch
             )
 
         ApplyFish fish ->
             ( model
-            , [ FishFood fish |> Shared.RemoveItem |> Effect.fromShared
+            , [ SeaFood fish |> Shared.RemoveFood 1 |> Effect.fromShared
               , fish
                     |> Fish.toAmount
                     |> Shared.AddRandomDice
@@ -79,7 +79,7 @@ update msg model =
                 |> Effect.batch
             )
 
-        ApplyVegetable die vegetable ->
+        ApplyVegetable amount die vegetable ->
             let
                 maybeNewDie =
                     die
@@ -88,7 +88,7 @@ update msg model =
             case maybeNewDie of
                 Just newDie ->
                     ( model
-                    , [ VegetableFood vegetable |> Shared.RemoveItem |> Effect.fromShared
+                    , [ VegetableFood vegetable |> Shared.RemoveFood amount |> Effect.fromShared
                       , [ ( die, 1 ) ]
                             |> DiceBag.fromList
                             |> Shared.RemoveDice
@@ -109,8 +109,8 @@ update msg model =
 -- VIEW
 
 
-viewItems : AnyBag.AnyBag String Food -> Html Msg
-viewItems list =
+viewFood : AnyBag.AnyBag String Food -> Html Msg
+viewFood list =
     list
         |> AnyBag.toList
         |> List.map
@@ -128,27 +128,34 @@ viewItems list =
 viewDie : Shared.Model -> ( Die, Int ) -> Html Msg
 viewDie shared ( die, amount ) =
     (Vegetable.asList
-        |> List.filterMap
+        |> List.concatMap
             (\vegetable ->
                 let
                     modifier =
                         vegetable
                             |> Vegetable.modifier
+
+                    count =
+                        shared.food |> AnyBag.count (VegetableFood vegetable)
                 in
-                if shared.items |> AnyBag.member (VegetableFood vegetable) then
-                    die
-                        |> Dice.add modifier
-                        |> Maybe.map
-                            (\newDie ->
-                                [ Style.button ("Change into " ++ Dice.toString newDie)
-                                    (Just (ApplyVegetable die vegetable))
-                                , " using one " ++ Vegetable.toString vegetable |> Html.text
-                                ]
-                                    |> Html.div []
+                if count > 0 then
+                    List.range 1 (min count 5)
+                        |> List.filterMap
+                            (\multiplier ->
+                                die
+                                    |> Dice.add (modifier * multiplier)
+                                    |> Maybe.map
+                                        (\newDie ->
+                                            [ Style.button ("Change into " ++ Dice.toString newDie)
+                                                (Just (ApplyVegetable multiplier die vegetable))
+                                            , " using " ++ String.fromInt multiplier ++ Vegetable.toString vegetable |> Html.text
+                                            ]
+                                                |> Html.div []
+                                        )
                             )
 
                 else
-                    Nothing
+                    []
             )
     )
         |> (\list ->
@@ -220,7 +227,7 @@ view shared model =
                             amount =
                                 fish |> Fish.toAmount
                         in
-                        if shared.items |> AnyBag.member (FishFood fish) then
+                        if (amount > 0) && (shared.food |> AnyBag.member (SeaFood fish)) then
                             Style.button
                                 ("+"
                                     ++ String.fromInt amount
@@ -242,13 +249,13 @@ view shared model =
                 |> Style.row
             ]
                 |> Style.section ("Your Dice: " ++ (shared.dice |> DiceBag.toString))
-        , if AnyBag.isEmpty shared.items then
+        , if AnyBag.isEmpty shared.food then
             Style.none
 
           else
             Style.section "Food"
-                [ shared.items
-                    |> viewItems
+                [ shared.food
+                    |> viewFood
                 ]
         ]
     }

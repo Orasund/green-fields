@@ -18,7 +18,7 @@ fieldBasePrice =
 
 fishBasePrice : Int
 fishBasePrice =
-    20
+    10
 
 
 priceOfVegetables : Int

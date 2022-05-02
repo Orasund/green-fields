@@ -13,9 +13,17 @@ asList =
     Gen.Enum.SeaFood.asList
 
 
-emoji : SeaFood -> String
-emoji fish =
+default : SeaFood
+default =
+    Gen.Enum.SeaFood.first
+
+
+toEmoji : SeaFood -> String
+toEmoji fish =
     case fish of
+        Crab ->
+            "🦀"
+
         Fish ->
             "🐟"
 
@@ -28,37 +36,31 @@ emoji fish =
 
 toString : SeaFood -> String
 toString fish =
-    emoji fish ++ Gen.Enum.SeaFood.toString fish
+    toEmoji fish ++ Gen.Enum.SeaFood.toString fish
 
 
 price : SeaFood -> Int
 price fish =
-    2 ^ (toAmount fish - 1) * Config.fishBasePrice
+    2 ^ toAmount fish * Config.fishBasePrice
 
 
-fromStreet : Int -> Maybe SeaFood
+fromInt : Int -> Maybe SeaFood
+fromInt =
+    Gen.Enum.SeaFood.fromInt
+
+
+fromStreet : Int -> SeaFood
 fromStreet streetLength =
-    if streetLength == 3 then
-        Just Fish
-
-    else if streetLength == 4 then
-        Just Octopus
-
-    else if streetLength == 5 then
-        Just Lobster
+    if streetLength < 3 then
+        Gen.Enum.SeaFood.first
 
     else
-        Nothing
+        streetLength
+            - 3
+            |> Gen.Enum.SeaFood.fromInt
+            |> Maybe.withDefault Gen.Enum.SeaFood.last
 
 
 toAmount : SeaFood -> Int
-toAmount fish =
-    case fish of
-        Fish ->
-            1
-
-        Octopus ->
-            2
-
-        Lobster ->
-            3
+toAmount =
+    Gen.Enum.SeaFood.toInt

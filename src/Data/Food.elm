@@ -4,17 +4,18 @@ import Config
 import Data.Die as Die exposing (Die)
 import Data.Food.SeaFood as Fish exposing (SeaFood)
 import Data.Food.Vegetable as Vegetable exposing (Vegetable)
+import Json.Decode exposing (int)
 
 
 type Food
-    = FishFood SeaFood
+    = SeaFood SeaFood
     | VegetableFood Vegetable
 
 
 toString : Food -> String
 toString food =
     case food of
-        FishFood fish ->
+        SeaFood fish ->
             fish |> Fish.toString
 
         VegetableFood vegetable ->
@@ -24,8 +25,8 @@ toString food =
 emoji : Food -> String
 emoji food =
     case food of
-        FishFood fish ->
-            fish |> Fish.emoji
+        SeaFood fish ->
+            fish |> Fish.toEmoji
 
         VegetableFood vegetable ->
             vegetable |> Vegetable.emoji
@@ -34,7 +35,7 @@ emoji food =
 price : Food -> Int
 price food =
     case food of
-        FishFood fish ->
+        SeaFood fish ->
             Fish.price fish
 
         VegetableFood vegetable ->
@@ -44,8 +45,13 @@ price food =
 description : Food -> String
 description food =
     case food of
-        FishFood fish ->
-            "Add " ++ String.fromInt (Fish.toAmount fish) ++ " temporary dice."
+        SeaFood fish ->
+            case Fish.toAmount fish of
+                0 ->
+                    "Can be sold."
+
+                int ->
+                    "Add " ++ String.fromInt int ++ " temporary dice."
 
         VegetableFood vegetable ->
             (vegetable

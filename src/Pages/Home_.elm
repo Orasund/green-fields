@@ -18,7 +18,7 @@ view =
         , [ "This is a digital Roll & Write game. "
                 ++ "This means you throw dice and then use them for various actions. "
                 ++ "The theme of this game is farming, mining and crafting. "
-                ++ "If this is up your allay, head over to the "
+                ++ "If this is up your alley, head over to the "
                 |> Html.text
           , Style.link Route.Kitchen
           , " and start rolling some dice." |> Html.text

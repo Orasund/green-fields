@@ -7,7 +7,7 @@ import Data.AnyBag as AnyBag
 import Data.DiceBag as DiceBag
 import Data.Die as Dice exposing (Die)
 import Data.Food as Food exposing (Food(..))
-import Data.Food.Vegetable as Vegetable exposing (Vegetable(..))
+import Data.Food.Vegetable as Vegetable exposing (Vegetable)
 import Effect exposing (Effect)
 import Gen.Params.Fields exposing (Params)
 import Gen.Route as Route
@@ -100,7 +100,7 @@ update msg model =
                     |> Effect.fromShared
               , vegi
                     |> VegetableFood
-                    |> Shared.AddItem
+                    |> Shared.AddFood
                     |> Effect.fromShared
               ]
                 |> Effect.batch

@@ -1,12 +1,46 @@
 {
   "moduleBase": "Gen",
-  "generateInto": "elm-gen/genereated",
+  "generateInto": "elm-gen/generated",
   "templatesFrom": "elm-gen/templates",
   "modules": {
-    "SeaFood": { "Enum": { "sorts": ["Fish", "Octopus", "Lobster"] } },
+    "SeaFood": {
+      "Enum": {
+        "sorts": ["Crab","Fish", "Octopus", "Lobster"]
+      }
+    },
     "Vegetable": {
       "Enum": {
         "sorts": ["Potato", "Carrot", "Tomato", "Onion", "Cucumber", "Broccoli"]
+      }
+    },
+    "Stone": {
+      "Enum": {
+        "sorts": ["Limestone"]
+      }
+    },
+    "Shared": {
+      "Record": {
+        "imports": [
+          "Data.DiceBag exposing (DiceBag)",
+          "Random exposing (Seed)",
+          "Data.AnyBag exposing (AnyBag)",
+          "Data.Food exposing (Food)",
+          "Data.Food.Vegetable exposing (Vegetable)",
+          "Data.Stone exposing (Stone)",
+          "Array exposing (Array)",
+          "Data.Food.SeaFood exposing (SeaFood)"
+        ],
+        "fields": [
+          { "name": "dice", "type": "DiceBag" },
+          { "name": "money", "type": "Int" },
+          { "name": "seed", "type": "Seed" },
+          { "name": "food", "type": "AnyBag String Food" },
+          { "name": "stone", "type": "AnyBag String Stone" },
+          { "name": "fields", "type": "Array (Maybe Vegetable)" },
+          { "name": "fishingPool", "type": "(SeaFood,List SeaFood)" }
+        ],
+        "withJsonDecoder": false,
+        "withJsonEncoder": false
       }
     }
   }

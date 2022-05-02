@@ -1,8 +1,11 @@
 module Pages.Mine exposing (Model, Msg, page)
 
 import Config
+import Data.AnyBag as AnyBag exposing (AnyBag)
 import Data.DiceBag as DiceBag
 import Data.Die as Die exposing (Die)
+import Data.Food as Food
+import Data.Stone as Stone
 import Effect exposing (Effect)
 import Gen.Params.Mine exposing (Params)
 import Html.Styled as Html exposing (Html)
@@ -42,7 +45,8 @@ init =
 
 
 type Msg
-    = Mine Die { amount : Int }
+    = Mine Die { amount : Int } Stone.Stone
+    | Sell Stone.Stone
 
 
 price : Int -> Int
@@ -52,20 +56,44 @@ price amount =
         * Config.priceOfStone
 
 
+viewStone : AnyBag String Stone.Stone -> Html Msg
+viewStone list =
+    list
+        |> AnyBag.toList
+        |> List.map
+            (\( item, amount ) ->
+                [ Stone.toString item |> Html.text
+                , String.fromInt amount ++ "x" |> Html.text
+                , Stone.description item |> Html.text
+                , Just (Sell item)
+                    |> Style.button ("Sell for " ++ (Stone.price item |> String.fromInt) ++ Config.moneySymbol)
+                ]
+            )
+        |> Style.table [ "Name", "Amount", "Effect", "Sell" ]
+
+
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        Mine die { amount } ->
+        Sell food ->
+            ( model
+            , [ food |> Stone.price |> Shared.AddMoney |> Effect.fromShared
+              , food |> Shared.AddStone -1 |> Effect.fromShared
+              ]
+                |> Effect.batch
+            )
+
+        Mine die { amount } stone ->
             ( model
             , [ [ ( die, amount ) ]
                     |> DiceBag.fromList
                     |> Shared.RemoveDice
                     |> Effect.fromShared
-              , amount
-                    |> price
-                    |> Shared.AddMoney
+              , stone
+                    |> Shared.AddStone 1
                     |> Effect.fromShared
               ]
+                |> List.map identity
                 |> Effect.batch
             )
 
@@ -84,18 +112,21 @@ subscriptions model =
 
 
 viewOre : ( Die, Int ) -> Html Msg
-viewOre ( die, amount ) =
+viewOre ( die, int ) =
+    let
+        stone =
+            int |> Stone.fromInt |> Maybe.withDefault Stone.last
+    in
     [ "Use " |> Html.text
-    , [ ( die, amount ) ]
+    , [ ( die, int ) ]
         |> DiceBag.fromList
         |> DiceBag.toString
         |> Html.text
     , " to " |> Html.text
     , Style.button "Mine"
-        (Mine die { amount = amount } |> Just)
-    , " and get "
-        ++ (price amount |> String.fromInt)
-        ++ Config.moneySymbol
+        (Mine die { amount = int } stone |> Just)
+    , " and get one "
+        ++ (stone |> Stone.toEmoji)
         ++ "."
         |> Html.text
     ]
@@ -110,12 +141,12 @@ view shared model =
             [ NoDice.view ]
 
         else
-            case
+            (case
                 shared.dice
                     |> DiceBag.toList
                     |> List.filter (\( i, n ) -> n > 1)
                     |> List.map viewOre
-            of
+             of
                 [] ->
                     [ "You did not have any luck in mines today. "
                         ++ "Come back once you have a double or a tiple die."
@@ -126,4 +157,6 @@ view shared model =
                     [ Style.section "Mining Ore"
                         list
                     ]
+            )
+                ++ [ viewStone shared.stone ]
     }
