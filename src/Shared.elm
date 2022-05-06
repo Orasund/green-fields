@@ -32,9 +32,9 @@ type alias Model =
 
 type Msg
     = NoOp
-    | GotSeed Seed
-    | Fish SeaFood.SeaFood
+    | SetSeed Seed
     | AddToFishingPool SeaFood.SeaFood
+    | SetFishingPool ( SeaFood.SeaFood, List SeaFood.SeaFood )
     | AddSeaFood
     | AddFood Food
     | RemoveFood Int Food
@@ -57,9 +57,9 @@ init _ _ =
       , food = AnyBag.empty Food.toString
       , stone = AnyBag.empty Data.Stone.toString
       , fields = Array.fromList [ Nothing ]
-      , fishingPool = ( SeaFood.default, [] )
+      , fishingPool = ( SeaFood.first, [] )
       }
-    , Random.independentSeed |> Random.generate GotSeed
+    , Random.independentSeed |> Random.generate SetSeed
     )
 
 
@@ -82,49 +82,30 @@ update request msg model =
         NoOp ->
             model |> noCmd
 
-        GotSeed seed ->
+        SetSeed seed ->
             model
                 |> Shared.setSeed seed
                 |> noCmd
 
-        Fish seaFood ->
+        SetFishingPool list ->
             model
-                |> Shared.getFishingPool
-                |> (\( head, tail ) -> Random.List.choose (seaFood :: head :: tail))
-                |> Random.map
-                    (\( maybe, list ) ->
-                        ( maybe |> Maybe.withDefault SeaFood.default
-                        , case list of
-                            [] ->
-                                ( SeaFood.default, [] )
-
-                            head :: tail ->
-                                ( head, tail )
-                        )
-                    )
-                |> (\generator -> Random.step generator model.seed)
-                |> (\( ( result, list ), seed ) ->
-                        model
-                            |> Shared.setSeed seed
-                            |> Shared.setFishingPool list
-                            |> update request (AddFood (Food.SeaFood result))
-                   )
+                |> Shared.setFishingPool list
+                |> noCmd
 
         AddToFishingPool seaFood ->
-            ( model
+            model
                 |> Shared.mapFishingPool (\( head, tail ) -> ( seaFood, head :: tail ))
-            , Cmd.none
-            )
+                |> noCmd
 
         AddSeaFood ->
             model.fishingPool
                 |> (\( head, tail ) -> Random.List.choose (head :: tail))
                 |> Random.map
                     (\( maybe, list ) ->
-                        ( maybe |> Maybe.withDefault SeaFood.default
+                        ( maybe |> Maybe.withDefault SeaFood.first
                         , case list of
                             [] ->
-                                ( SeaFood.default, [] )
+                                ( SeaFood.first, [] )
 
                             head :: tail ->
                                 ( head, tail )

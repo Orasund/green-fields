@@ -13,8 +13,8 @@ asList =
     Gen.Enum.SeaFood.asList
 
 
-default : SeaFood
-default =
+first : SeaFood
+first =
     Gen.Enum.SeaFood.first
 
 

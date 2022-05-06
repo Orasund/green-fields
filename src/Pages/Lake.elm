@@ -14,9 +14,12 @@ import Gen.Params.Lake exposing (Params)
 import Html.Styled as Html exposing (Html)
 import List.Extra
 import Page
+import Random
+import Random.List
 import Request
-import Shared
+import Shared exposing (Msg(..))
 import StaticArray.Index as Index
+import Svg.Styled.Attributes exposing (result)
 import View exposing (View)
 import View.NoDice as NoDice
 import View.Style as Style
@@ -26,7 +29,7 @@ page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
     Page.advanced
         { init = init
-        , update = update
+        , update = update shared
         , view = view shared
         , subscriptions = subscriptions
         }
@@ -54,24 +57,39 @@ type Msg
     | AddSeaFood SeaFood Stone
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
+update shared msg model =
     case msg of
-        Catch list ->
-            ( model
-            , [ list
-                    |> List.map (\dice -> ( dice, 1 ))
-                    |> DiceBag.fromList
-                    |> Shared.RemoveDice
-                    |> Effect.fromShared
-              , list
-                    |> List.length
-                    |> SeaFood.fromStreet
-                    |> Shared.Fish
-                    |> Effect.fromShared
-              ]
-                |> Effect.batch
-            )
+        Catch dice ->
+            shared.fishingPool
+                |> (\( head, tail ) -> head :: tail)
+                |> Random.List.choose
+                |> Random.map
+                    (\( maybe, list ) ->
+                        ( maybe |> Maybe.withDefault SeaFood.first
+                        , case list of
+                            [] ->
+                                ( SeaFood.first, [] )
+
+                            head :: tail ->
+                                ( head, tail )
+                        )
+                    )
+                |> (\generator -> Random.step generator shared.seed)
+                |> (\( ( seaFood, list ), seed ) ->
+                        ( model
+                        , [ Shared.SetSeed seed
+                          , Shared.SetFishingPool list
+                          , Shared.AddFood (Food.SeaFood seaFood)
+                          , dice
+                                |> List.map (\die -> ( die, 1 ))
+                                |> DiceBag.fromList
+                                |> Shared.AddDice
+                          ]
+                            |> List.map Effect.fromShared
+                            |> Effect.batch
+                        )
+                   )
 
         AddSeaFood seaFood stone ->
             ( model
@@ -111,10 +129,10 @@ viewStreet list =
                                     |> List.map Dice.toString
                                     |> String.concat
                                )
-                            ++ " to "
+                            ++ " go "
                             |> Html.text
-                      , Catch list |> Just |> Style.button ("Add a " ++ name)
-                      , "to the pool and go fishing." |> Html.text
+                      , Catch list |> Just |> Style.button "fishing"
+                      , "." |> Html.text
                       ]
                         |> Style.row
                     ]
